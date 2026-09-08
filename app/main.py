@@ -1,9 +1,13 @@
 # app/main.py
 from fastapi import FastAPI
 from app.store.db import init_db
-from app.harness import models  # noqa: F401 — import registers tables with Base.metadata
+from app.harness import models  # noqa: F401
+from app.api import projects, documents
 
 app = FastAPI(title="Bid Document Analysis Harness")
+
+app.include_router(projects.router)
+app.include_router(documents.router)
 
 
 @app.on_event("startup")
