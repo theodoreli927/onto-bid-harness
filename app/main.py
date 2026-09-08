@@ -1,7 +1,14 @@
 # app/main.py
 from fastapi import FastAPI
+from app.store.db import init_db
 
 app = FastAPI(title="Bid Document Analysis Harness")
+
+
+@app.on_event("startup")
+async def on_startup():
+    await init_db()
+
 
 @app.get("/health")
 def health():
