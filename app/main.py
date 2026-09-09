@@ -1,16 +1,11 @@
 # app/main.py
+import asyncio
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from app.store.db import init_db
 from app.harness import models  # noqa: F401
 from app.api import projects, documents, tasks
-import asyncio
 from app.worker import worker_loop
-
-@app.on_event("startup")
-async def on_startup():
-    await init_db()
-    asyncio.create_task(worker_loop())  # runs the worker loop inside the same process
 
 app = FastAPI(title="Bid Document Analysis Harness")
 
@@ -24,6 +19,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.on_event("startup")
 async def on_startup():
     await init_db()
+    asyncio.create_task(worker_loop())
 
 
 @app.get("/health")
