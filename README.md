@@ -174,4 +174,41 @@ See `ARCHITECTURE.md` for the full list, including:
 - Document ID scoping on `Task` uses a JSON column rather than a normalized
   join table — a reasonable simplification for this scope, noted as an
   enterprise change.
-READMEEOF
+
+## Live deployment
+
+- **API base URL**: https://onto-bid-harness.onrender.com
+- **Viewer**: https://onto-bid-harness.onrender.com/static/viewer.html
+- **Health check**: https://onto-bid-harness.onrender.com/health
+
+The GitHub repository contains the full source for review (architecture,
+harness design, evaluation system). The Render deployment is a separate,
+live instance of that same code — it lets a reviewer test the running
+application directly (upload a document, run an analysis, inspect
+findings) without needing to clone the repo, install Docker, or provide
+their own API key.
+
+To run a full analysis against the live deployment, use the same curl
+commands from "Using the harness" above, substituting the live URL for
+`http://localhost:8000`.
+
+### Known limitation: viewer is read-only
+
+The viewer displays completed task results with evidence highlighting,
+but project creation, document upload, and task creation currently
+require direct API calls (see curl examples above) rather than UI forms.
+This was deprioritized under the three-day constraint in favor of a
+working core pipeline and evaluation system. A production version would
+add these as simple forms calling the same existing API endpoints — no
+backend changes needed.
+
+### Deployment-specific note: single-process worker
+
+The Render deployment runs the task-execution worker loop as a background
+`asyncio` task within the same process as the API (see `app/main.py`),
+rather than as the separate `worker` service used in local development
+(`docker-compose.yml`). This was a deliberate adaptation to Render's free
+tier, which does not include a free Background Worker service alongside a
+free Web Service. The task lifecycle logic itself (`app/harness/lifecycle.py`)
+is unchanged — only how the polling loop is started differs. See
+`ARCHITECTURE.md` for the full tradeoff discussion.
