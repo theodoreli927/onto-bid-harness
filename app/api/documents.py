@@ -66,3 +66,30 @@ async def list_documents(project_id: str, db: AsyncSession = Depends(get_db)):
         {"id": d.id, "filename": d.filename, "page_count": d.page_count}
         for d in docs
     ]
+
+
+import fitz
+from fastapi.responses import Response
+
+@router.get("/{document_id}/pages/{page_number}/image")
+async def get_document_page_image(
+    project_id: str,
+    document_id: str,
+    page_number: int,
+    db: AsyncSession = Depends(get_db),
+):
+    document = await db.get(Document, document_id)
+    if document is None or document.project_id != project_id:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    doc = fitz.open(document.storage_path)
+    if page_number < 1 or page_number > len(doc):
+        doc.close()
+        raise HTTPException(status_code=404, detail="Page not found")
+
+    page = doc[page_number - 1]  # fitz is 0-indexed, our pages are 1-indexed
+    pix = page.get_pixmap(dpi=150)
+    img_bytes = pix.tobytes("png")
+    doc.close()
+
+    return Response(content=img_bytes, media_type="image/png")

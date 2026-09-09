@@ -149,6 +149,6 @@ if __name__ == "__main__":
     report = asyncio.run(run_all())
     print(json.dumps(report, indent=2))
 
-    with open("eval_report.json", "w") as f:
+    with open("data/eval_report.json", "w") as f:
         json.dump(report, f, indent=2)
-    print("\nReport written to eval_report.json")
+    print("\nReport written to data/eval_report.json")
